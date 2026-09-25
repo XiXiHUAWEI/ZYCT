@@ -27,7 +27,7 @@ from pathlib import Path
 # 1. 路径配置
 #    __file__ 是 backend/db.py
 #    .parent          -> backend 文件夹
-#    .parent.parent   -> 项目根目录 D:\0\1
+#    .parent.parent   -> 项目根目录 你的目录
 # ---------------------------------------------------------------
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DATABASE_DIR = PROJECT_ROOT / "database"

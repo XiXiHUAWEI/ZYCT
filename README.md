@@ -12,7 +12,7 @@
 新版用的是 `sessions` + `messages`，**必须先跑一次迁移脚本**：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python database/migrate.py
 ```
 
@@ -26,7 +26,7 @@ python database/migrate.py
 
 ```
 发现旧表 dialogues，共有 3 条记录。
-已备份数据库 -> D:\0\1\database\backup\zhixue_backup_20260918_190916.db
+已备份数据库 -> \database\backup\zhixue_backup_.db
 迁移完成：3 条旧记录 -> 3 个会话
 旧表已改名为：dialogues_backup_20260918_190916（数据还在，确认没问题后可以自己删）
 ```
@@ -76,7 +76,7 @@ python database/migrate.py
 ### 第 1 步：安装依赖（只做一次）
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 pip install -r requirements.txt
 ```
 
@@ -88,14 +88,14 @@ pip install -r requirements.txt
 ### 第 2 步：启动后端
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 python -m uvicorn main:app --reload
 ```
 
 看到下面这行就成功了：
 
 ```
-[智愈错题] 数据库已就绪：D:\0\1\database\zhixue.db
+[智愈错题] 数据库已就绪：你的目录database\zhixue.db
 INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)
 ```
 
@@ -266,13 +266,13 @@ result = await ai_service.generate_reply(history)
 
 ### 第 2 步：新建 `.env` 文件
 
-在**项目根目录**（`D:\0\1`，和 `README.md` 同一层）新建一个文件，文件名就叫 `.env`
+在**项目根目录**（`你的目录`，和 `README.md` 同一层）新建一个文件，文件名就叫 `.env`
 （注意开头有个点，**没有** `.txt` 之类的后缀）。
 
 最简单的做法：把现成的 `.env.example` 复制一份，改名为 `.env`，然后编辑它：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 Copy-Item .env.example .env
 notepad .env
 ```
@@ -298,7 +298,7 @@ DEEPSEEK_TIMEOUT=60
 这一步**必须做**，否则后端启动会报 `No module named 'httpx'`：
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 pip install -r requirements.txt
 ```
 
@@ -316,7 +316,7 @@ pip install -r requirements.txt
 按 `Ctrl+C` 停掉，再重新运行：
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 python -m uvicorn main:app --reload
 ```
 
@@ -326,7 +326,7 @@ python -m uvicorn main:app --reload
 [智愈错题] AI 已配置，模型：deepseek-flash
 ```
 
-如果看到的是警告，说明 Key 没读到，请检查 `.env` 是不是放在 `D:\0\1\` 根目录：
+如果看到的是警告，说明 Key 没读到，请检查 `.env` 是不是放在 `你的目录\` 根目录：
 
 ```
 [智愈错题] ⚠ 未检测到 DEEPSEEK_API_KEY，AI 诊断功能将不可用
@@ -548,7 +548,7 @@ conn.execute("INSERT INTO reports (student_id, mastery_data) VALUES (?, ?)",
 当然也可以单独运行：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python database\init_db.py
 ```
 
@@ -752,7 +752,7 @@ v0.4 时代的接口，为了不让旧代码报错而保留。
 **先启动后端**，然后**另开一个终端**：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python test_api.py
 ```
 
@@ -804,7 +804,7 @@ curl.exe -X POST "http://127.0.0.1:8000/api/new_session" `
 ### 怎么确认数据真的存进去了？
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python -c "import sqlite3; c=sqlite3.connect('database/zhixue.db'); c.row_factory=sqlite3.Row; [print(dict(r)) for r in c.execute('SELECT id, session_id, role, content FROM messages ORDER BY id')]"
 ```
 
@@ -817,7 +817,7 @@ python -c "import sqlite3; c=sqlite3.connect('database/zhixue.db'); c.row_factor
 说明你是从 v0.4 升级上来的，还没跑迁移。停掉服务，运行：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python database/migrate.py
 ```
 
@@ -835,7 +835,7 @@ python database/migrate.py
 迁移前自动备份在 `database/backup/` 里，直接复制回来改名即可：
 
 ```powershell
-cd D:\0\1\database
+cd 你的目录\database
 Copy-Item backup\zhixue_backup_20260918_190916.db zhixue.db -Force
 ```
 
@@ -845,7 +845,7 @@ Copy-Item backup\zhixue_backup_20260918_190916.db zhixue.db -Force
 
 ### ❓ 页面顶部出现黄色警告「还没有配置 DeepSeek API Key」
 
-`D:\0\1\.env` 文件不存在，或者里面没填 `DEEPSEEK_API_KEY`。
+`你的目录\.env` 文件不存在，或者里面没填 `DEEPSEEK_API_KEY`。
 照着「五、配置 DeepSeek API Key」做一遍，然后**重启后端**。
 
 ### ❓ AI 好像不记得我们之前聊过什么
@@ -882,7 +882,7 @@ DeepSeek 账户余额不足，去 https://platform.deepseek.com 充值。
 新依赖没装。回到 `backend` 目录重新装一次：
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 pip install -r requirements.txt
 ```
 
@@ -891,7 +891,7 @@ pip install -r requirements.txt
 没有先 `cd backend`。请务必：
 
 ```powershell
-cd D:\0\1\backend
+cd 你的目录\backend
 python -m uvicorn main:app --reload
 ```
 
@@ -905,7 +905,7 @@ python -m uvicorn main:app --reload
 你这台电脑的 Python 是微软商店版，系统目录不可写。用虚拟环境：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python -m venv venv
 venv\Scripts\activate
 pip install -r backend\requirements.txt
@@ -930,7 +930,7 @@ python -m uvicorn main:app --reload --port 8001
 确认新数据都正常之后，可以手动删掉备份表：
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python -c "import sqlite3; c=sqlite3.connect('database/zhixue.db'); c.execute('DROP TABLE dialogues_backup_20260918_190916'); c.commit()"
 ```
 
