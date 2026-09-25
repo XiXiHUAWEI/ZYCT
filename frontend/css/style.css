@@ -1,0 +1,2312 @@
+/* ============================================================
+   智愈错题 —— 样式表（v0.8 深色模式 + 毛玻璃版）
+   ============================================================
+
+   本文件的组织方式（按顺序阅读）：
+
+     0. 主题变量 ★ 只在这里定义颜色，其他所有地方都用 var(...)
+        · :root            浅色主题
+        · [data-theme=dark] 深色主题
+     1. 全局重置与基础排版
+     2. 顶部导航栏（含深色模式切换按钮）
+     3. 全局警告条
+     4. 主体布局（左 250px + 右自适应）
+     5. 左侧边栏（含分组标题、图钉）
+     6. 右侧聊天区外壳
+     7. 消息气泡
+     8. 底部输入区
+     9. 日志面板
+    10. ★ 消息区上下毛玻璃遮罩
+    11. 滚动条
+    12. 响应式
+
+   ⚠️ 两处不要动：
+      · 第 4、6 区的 min-width: 0 / min-height: 0 —— 防止出现整体滚动条
+      · 第 10 区的 pointer-events: none —— 防止遮罩挡住鼠标操作
+   ============================================================ */
+
+
+/* ============================================================
+   0. 主题变量
+   ------------------------------------------------------------
+   所有颜色都写在这里。其他区块一律使用 var(--xxx)，
+   所以切换主题只要换一组变量值，整个界面自动跟着变。
+
+   命名说明：
+     --bg-*       背景类
+     --text-*     文字类
+     --border-*   边框类
+     --bubble-*   聊天气泡
+     --accent-*   主色（学习蓝）
+   ============================================================ */
+:root {
+    /* ---------- 主色 ---------- */
+    --accent-color: #2563EB;          /* 学习蓝 */
+    --accent-hover: #1D4ED8;
+    --accent-soft: #EFF6FF;           /* 主色的浅底（标签、选中态）*/
+    --accent-border: #BFDBFE;
+    --gradient-accent: linear-gradient(135deg, #3B82F6, #2563EB);
+
+    /* ---------- 背景 ---------- */
+    --bg-color: #F8FAFC;              /* 页面底色 */
+    --surface-color: #FFFFFF;         /* 卡片 / 面板 */
+    --surface-2-color: #F1F5F9;       /* 次级表面（药丸输入框等）*/
+    --chat-bg-color: #F8FAFC;         /* 消息区底色（毛玻璃渐变也用它）*/
+    --hover-color: #F1F5F9;           /* 鼠标悬停 */
+    --active-color: #EFF6FF;          /* 选中态 */
+    --input-bg-color: #FFFFFF;
+
+    /* ---------- 文字 ---------- */
+    --text-color: #0F172A;            /* 标题 */
+    --text-body-color: #334155;       /* 正文 */
+    --text-muted-color: #64748B;      /* 次要 */
+    --text-faint-color: #94A3B8;      /* 最浅（时间戳、分组标题）*/
+
+    /* ---------- 边框 ---------- */
+    --border-color: #E2E8F0;
+    --border-soft-color: #F1F5F9;
+
+    /* ---------- 聊天气泡 ---------- */
+    --bubble-user-bg: linear-gradient(135deg, #3B82F6, #2563EB);
+    --bubble-user-text: #FFFFFF;
+    --bubble-user-shadow: 0 2px 8px rgba(37, 99, 235, 0.22);
+    --bubble-ai-bg: #FFFFFF;
+    --bubble-ai-text: #334155;
+    --bubble-ai-shadow: 0 1px 3px rgba(15, 23, 42, 0.06),
+                        0 1px 2px rgba(15, 23, 42, 0.04);
+
+    /* ---------- 语义色 ---------- */
+    --success-color: #059669;
+    --success-soft: #ECFDF5;
+    --danger-color: #DC2626;
+    --danger-soft: #FEF2F2;
+    --warning-color: #B45309;
+    --warning-soft: #FFFBEB;
+    --warning-border: #FDE68A;
+
+    /* ---------- 阴影 ---------- */
+    --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06),
+                 0 1px 2px rgba(15, 23, 42, 0.04);
+    --shadow-blue: 0 0 0 3px rgba(37, 99, 235, 0.12);
+
+    /* ---------- 圆角 ---------- */
+    --r-sm: 8px;
+    --r-md: 12px;
+    --r-lg: 16px;
+    --r-pill: 999px;
+
+    /* ==========================================================
+       ★ 毛玻璃（Glassmorphism）专用变量
+       ----------------------------------------------------------
+       --glass-bg     侧边栏 / 聊天区的半透明底色
+       --glass-blur   磨砂强度（px 越大越糊越柔和，也越吃性能）
+       --glass-brd    毛玻璃的描边（有一圈亮边才像真玻璃）
+       --chat-surface 消息区的半透明底色（比 glass-bg 更淡一点，
+                      这样底下的渐变还能透上来）
+       --mask-tint    上下遮罩渐变用的颜色
+       --glow-1/2/3   页面背景上的三团柔光
+
+       ⚠️ 毛玻璃能"看得见"的前提是【背后有东西可糊】。
+          如果背景是一块纯色，糊完还是那块纯色，等于没效果。
+          所以下面 body 里加了三团彩色柔光当"底料"。
+       ========================================================== */
+    --glass-bg: rgba(255, 255, 255, 0.62);
+    --glass-blur: 20px;
+    --glass-brd: rgba(255, 255, 255, 0.7);
+    --chat-surface: rgba(255, 255, 255, 0.45);
+    --mask-tint: rgba(248, 250, 252, 0.9);
+
+    --glow-1: rgba(59, 130, 246, 0.26);    /* 蓝 */
+    --glow-2: rgba(139, 92, 246, 0.20);    /* 紫 */
+    --glow-3: rgba(16, 185, 129, 0.16);    /* 绿 */
+
+    /* 告诉浏览器这是浅色界面（输入框、滚动条会跟着变） */
+    color-scheme: light;
+}
+
+/* ------------------------------------------------------------
+   深色主题
+   ------------------------------------------------------------
+   要点：
+     · 背景用深藏青（#0B1220 / #131C2E），不用纯黑，护眼也更高级
+     · 文字用浅灰而不是纯白，长时间看不刺眼
+     · 气泡和输入框比背景亮一档，形成"卡片浮起来"的层次
+   ------------------------------------------------------------ */
+[data-theme="dark"] {
+    /* ---------- 主色（深色下稍微提亮，保证对比度）---------- */
+    --accent-color: #60A5FA;
+    --accent-hover: #93C5FD;
+    --accent-soft: #1E3A5F;
+    --accent-border: #2B4C7E;
+    --gradient-accent: linear-gradient(135deg, #3B82F6, #2563EB);
+
+    /* ---------- 背景 ---------- */
+    --bg-color: #0B1220;              /* 页面底色：深藏青 */
+    --surface-color: #131C2E;         /* 卡片 */
+    --surface-2-color: #1B263B;       /* 次级表面 */
+    --chat-bg-color: #0F1726;         /* 消息区 */
+    --hover-color: #1B263B;
+    --active-color: #172554;
+    --input-bg-color: #131C2E;
+
+    /* ---------- 文字 ---------- */
+    --text-color: #E8EDF5;
+    --text-body-color: #C7D2E0;
+    --text-muted-color: #8E9CB0;
+    --text-faint-color: #64748B;
+
+    /* ---------- 边框 ---------- */
+    --border-color: #24344D;
+    --border-soft-color: #1B263B;
+
+    /* ---------- 聊天气泡 ---------- */
+    --bubble-user-bg: linear-gradient(135deg, #3B82F6, #2563EB);
+    --bubble-user-text: #FFFFFF;
+    --bubble-user-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+    --bubble-ai-bg: #1B263B;          /* AI 气泡：柔和的深色，不是纯黑 */
+    --bubble-ai-text: #DCE5F0;
+    --bubble-ai-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+
+    /* ---------- 语义色 ---------- */
+    --success-color: #34D399;
+    --success-soft: #06301F;
+    --danger-color: #F87171;
+    --danger-soft: #3B1517;
+    --warning-color: #FBBF24;
+    --warning-soft: #33260A;
+    --warning-border: #6B4E12;
+
+    /* ---------- 阴影（深色下要更重才看得出层次）---------- */
+    --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.4);
+    --shadow-blue: 0 0 0 3px rgba(96, 165, 250, 0.2);
+
+    /* ==========================================================
+       ★ 深色模式的毛玻璃
+       ----------------------------------------------------------
+       重点：这里绝对不能用 rgba(255,255,255,...)，
+             否则深色背景上会蒙一层灰白，看起来"发灰发脏"。
+
+       也不能用 rgba(30,30,30,...) 这种中性灰 —— 因为整体色调是
+       藏青色，纯灰会和背景"打架"。所以用带蓝调的深藏青，
+       和 --surface-color 同一个色系，只是半透明。
+       ========================================================== */
+    --glass-bg: rgba(19, 28, 46, 0.62);        /* 深藏青 + 半透明 */
+    --glass-blur: 20px;
+    --glass-brd: rgba(255, 255, 255, 0.09);    /* 深色下的描边要很淡 */
+    --chat-surface: rgba(15, 23, 38, 0.45);
+    --mask-tint: rgba(10, 16, 28, 0.9);
+
+    --glow-1: rgba(59, 130, 246, 0.22);
+    --glow-2: rgba(124, 58, 237, 0.20);
+    --glow-3: rgba(16, 185, 129, 0.12);
+
+    color-scheme: dark;
+}
+
+
+/* ============================================================
+   1. 全局重置与基础排版
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+    /* 让 padding / border 算进 width 里，从根上杜绝横向溢出 */
+    box-sizing: border-box;
+}
+
+html,
+body {
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    /* ① 页面高度正好一屏，不允许出现整体滚动条 */
+    height: 100vh;
+    overflow: hidden;
+
+    /* ② 竖向弹性布局：导航栏 + 警告条 + 主体 */
+    display: flex;
+    flex-direction: column;
+
+    /* ==========================================================
+       ③ 背景：底色 + 三团柔光
+       ----------------------------------------------------------
+       毛玻璃只能"糊它背后的东西"。如果背后是一块纯色，
+       糊完还是那块纯色，看不出任何效果。
+       所以这里铺三团不同颜色的柔光当"底料"，
+       侧边栏和聊天区的玻璃才能糊出柔和的色彩过渡。
+
+       radial-gradient(半径 位置, 颜色, 透明) 就是"一团圆形柔光"。
+       颜色本身带透明度（见 --glow-* 变量），所以是淡淡的。
+       ========================================================== */
+    background-color: var(--bg-color);
+    background-image:
+        radial-gradient(900px 620px at 10% -8%,  var(--glow-1), transparent 62%),
+        radial-gradient(820px 600px at 96% 4%,   var(--glow-2), transparent 58%),
+        radial-gradient(760px 700px at 55% 108%, var(--glow-3), transparent 60%);
+
+    color: var(--text-body-color);
+
+    /* ③ 系统无衬线字体，不下载任何字体文件 */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC",
+                 "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue",
+                 Arial, sans-serif;
+
+    font-size: 14px;
+    line-height: 1.6;
+
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+
+    /* 切换主题时整体渐变一下，不要"啪"地突变 */
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+
+/* ============================================================
+   2. 顶部导航栏
+   ============================================================ */
+.app-navbar {
+    flex-shrink: 0;                   /* 固定高度，永不压缩 */
+    height: 60px;
+    background-color: var(--surface-color);
+    border-bottom: 1px solid var(--border-color);
+    box-shadow: var(--shadow-xs);
+    z-index: 10;
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.navbar-inner {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    height: 100%;
+    padding: 0 20px;
+}
+
+/* ---------- 品牌区 ---------- */
+.brand {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    flex-shrink: 0;
+}
+
+.brand-logo {
+    width: 32px;
+    height: 32px;
+    border-radius: 9px;
+    background: var(--gradient-accent);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+}
+
+.brand-logo svg {
+    width: 19px;
+    height: 19px;
+}
+
+.brand-name {
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--text-color);
+    letter-spacing: 0.2px;
+}
+
+/* ---------- 副标题小标签 ---------- */
+.nav-tag {
+    flex-shrink: 0;
+    padding: 3px 11px;
+    border-radius: var(--r-pill);
+    background-color: var(--surface-2-color);
+    color: var(--text-muted-color);
+    font-size: 12px;
+    font-weight: 500;
+    white-space: nowrap;
+}
+
+/* ---------- 后端连接状态（绿点 + 文字）----------
+   app.js 会把 className 改成 "badge bg-success"，
+   这里用 id 选择器（优先级更高）覆盖 Bootstrap 的 badge 样式。
+------------------------------------------------- */
+#conn-badge {
+    margin-left: auto;                /* 把后面的元素都推到右边 */
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    padding: 4px 11px;
+    border-radius: var(--r-pill);
+
+    font-size: 11.5px;
+    font-weight: 500;
+    line-height: 1.5;
+
+    background-color: var(--surface-2-color);
+    color: var(--text-faint-color);
+    transition: background-color 0.2s, color 0.2s;
+}
+
+/* 小圆点：用 currentColor，会跟着文字颜色一起变 */
+#conn-badge::before {
+    content: "";
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background-color: currentColor;
+    flex-shrink: 0;
+}
+
+#conn-badge.bg-success {
+    background-color: var(--success-soft);
+    color: var(--success-color);
+}
+
+#conn-badge.bg-danger {
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+#conn-badge.bg-secondary {
+    background-color: var(--surface-2-color);
+    color: var(--text-faint-color);
+}
+
+/* ---------- 深色模式切换按钮 ---------- */
+.theme-toggle {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--surface-color);
+    color: var(--text-muted-color);
+
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s,
+                border-color 0.15s, transform 0.15s;
+}
+
+.theme-toggle:hover {
+    background-color: var(--hover-color);
+    color: var(--accent-color);
+    border-color: var(--accent-border);
+}
+
+.theme-toggle:active {
+    transform: scale(0.94);
+}
+
+.theme-toggle svg {
+    width: 17px;
+    height: 17px;
+}
+
+/* 两个图标都放在按钮里，用 CSS 决定显示哪一个。
+   这样 JS 只要切换 <html data-theme>，不用去改图标。 */
+.theme-toggle .icon-moon {
+    display: none;
+}
+
+[data-theme="dark"] .theme-toggle .icon-sun {
+    display: none;
+}
+
+[data-theme="dark"] .theme-toggle .icon-moon {
+    display: block;
+}
+
+
+/* ============================================================
+   3. 全局警告条
+   ============================================================ */
+.app-alert {
+    flex-shrink: 0;
+    margin: 12px 20px 0;
+    padding: 10px 14px;
+    border: 1px solid var(--warning-border);
+    border-radius: var(--r-md);
+    background-color: var(--warning-soft);
+    color: var(--warning-color);
+    font-size: 13px;
+    transition: background-color 0.25s ease, color 0.25s ease;
+}
+
+
+/* ============================================================
+   4. 主体布局
+   ★ min-height / min-width 是布局不崩的关键，别删
+   ============================================================ */
+.app-body {
+    flex: 1;                          /* 吃掉导航栏之外的所有高度 */
+    min-height: 0;                    /* ★ 允许被压缩，否则内部滚动失效 */
+
+    display: flex;
+    flex-direction: row;
+    gap: 14px;
+
+    padding: 14px 20px 16px;
+    overflow: hidden;
+}
+
+
+/* ============================================================
+   5. 左侧边栏
+   ============================================================ */
+.sidebar {
+    /* 放大比例 0、收缩比例 0、基准宽度 250px —— 永远 250px 不缩水 */
+    flex: 0 0 250px;
+    width: 250px;
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    /* ==========================================================
+       ★ 毛玻璃效果
+       ----------------------------------------------------------
+       backdrop-filter 的作用：
+         把"这个元素背后的画面"做高斯模糊，再叠加到这个元素上。
+         有点像浴室里的磨砂玻璃 —— 后面的东西看得见轮廓，
+         但细节被糊掉了。
+
+       三件套缺一不可：
+         1. background-color 半透明   ← 不全透明，否则玻璃看不见
+         2. backdrop-filter 模糊      ← 核心
+         3. 一圈浅色描边              ← 模拟玻璃边缘的反光，最像玻璃
+       ========================================================== */
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+
+    /* 提示浏览器"这个元素的模糊不会变，可以单独分一层去合成"。
+       侧边栏背后是不动的渐变，所以浏览器能把它缓存住，
+       滚动聊天区时就不用反复重算，性能开销很小。 */
+    will-change: backdrop-filter;
+
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+.sidebar-header {
+    flex-shrink: 0;
+    padding: 14px 14px 10px;
+    border-bottom: 1px solid var(--border-soft-color);
+}
+
+/* ---------- 学生 ID + 新建会话（紧凑一行）---------- */
+.new-session-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.student-field {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-shrink: 0;
+
+    height: 34px;
+    padding: 0 6px 0 10px;
+    margin: 0;
+
+    background-color: var(--surface-2-color);
+    border: 1px solid transparent;
+    border-radius: 10px;
+    cursor: text;
+    transition: border-color 0.15s, background-color 0.15s;
+}
+
+.student-field:hover {
+    border-color: var(--border-color);
+}
+
+.student-field:focus-within {
+    background-color: var(--input-bg-color);
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-blue);
+}
+
+.student-label {
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--text-muted-color);
+    white-space: nowrap;
+    user-select: none;
+}
+
+.student-field input {
+    width: 42px;
+    border: none;
+    outline: none;
+    background: transparent;
+    padding: 0;
+
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text-color);
+    text-align: center;
+    font-family: inherit;
+}
+
+/* 藏掉数字输入框的上下小箭头 */
+.student-field input::-webkit-outer-spin-button,
+.student-field input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+.student-field input[type="number"] {
+    -moz-appearance: textfield;
+    appearance: textfield;
+}
+
+/* ---------- 新建会话按钮 ---------- */
+.btn-new-session {
+    flex: 1;
+    min-width: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+
+    height: 34px;
+    padding: 0 12px;
+
+    border: none;
+    border-radius: 10px;
+    background: var(--gradient-accent);
+    color: #fff;
+
+    font-size: 13px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    box-shadow: 0 1px 3px rgba(37, 99, 235, 0.25);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.btn-new-session:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.32);
+}
+
+.btn-new-session:active {
+    transform: translateY(1px);
+}
+
+.btn-new-session .icon-plus {
+    width: 14px;
+    height: 14px;
+    flex-shrink: 0;
+}
+
+.sidebar-title {
+    margin-top: 12px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+    color: var(--text-faint-color);
+}
+
+/* ---------- 会话列表 ---------- */
+.session-list {
+    flex: 1;
+    min-height: 0;                    /* ★ 关键：让列表自己滚动 */
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 6px 8px 10px;
+}
+
+.session-empty {
+    padding: 28px 14px;
+    text-align: center;
+    font-size: 12.5px;
+    color: var(--text-faint-color);
+    line-height: 1.8;
+}
+
+/* ---------- ★ 时间分组标题（今天 / 昨天 / 最近 7 天 / 更早）----------
+   微信那种灰色小标签。深色模式下用变量，对比度自动适配。
+------------------------------------------------------------------- */
+.session-group {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 10px 10px 5px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.4px;
+    color: var(--text-faint-color);
+    user-select: none;
+}
+
+/* 置顶那一组的标题用主色高亮，一眼能看出来 */
+.session-group-pinned {
+    color: var(--accent-color);
+}
+
+/* 分组标题右边的细横线，让分组更清楚 */
+.session-group::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background-color: var(--border-soft-color);
+}
+
+/* ---------- 单个会话条目 ---------- */
+.session-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+
+    margin-bottom: 3px;
+    padding: 9px 6px 9px 12px;
+
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+
+/* 左侧的蓝色竖条（平时高度为 0，选中时展开）*/
+.session-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+
+    width: 3px;
+    height: 0;
+    border-radius: 0 3px 3px 0;
+    background-color: var(--accent-color);
+    transition: height 0.2s ease;
+}
+
+.session-item:hover {
+    background-color: var(--hover-color);
+}
+
+.session-item.active {
+    background-color: var(--active-color);
+}
+
+.session-item.active::before {
+    height: 22px;
+}
+
+.session-body {
+    flex: 1;
+    min-width: 0;                     /* ★ 让下面的省略号生效 */
+    overflow: hidden;
+}
+
+.session-title {
+    font-size: 13.5px;
+    font-weight: 500;
+    color: var(--text-body-color);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.session-item.active .session-title {
+    font-weight: 700;
+    color: var(--accent-color);
+}
+
+.session-meta {
+    margin-top: 2px;
+    font-size: 11px;
+    color: var(--text-faint-color);
+}
+
+/* ---------- ★ 图钉按钮 ---------- */
+.session-pin {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-faint-color);
+
+    cursor: pointer;
+    opacity: 0;                       /* 平时藏起来，鼠标移上去才出现 */
+    transition: opacity 0.15s, color 0.15s, background-color 0.15s;
+}
+
+.session-pin svg {
+    width: 13px;
+    height: 13px;
+}
+
+.session-item:hover .session-pin {
+    opacity: 1;
+}
+
+.session-pin:hover {
+    color: var(--accent-color);
+    background-color: var(--accent-soft);
+}
+
+/* 已置顶：图钉一直显示、变主色、图标填充 */
+.session-pin.pinned {
+    opacity: 1;
+    color: var(--accent-color);
+}
+
+.session-pin.pinned svg {
+    fill: currentColor;               /* 实心图钉，和"未置顶"的空心区分开 */
+}
+
+.session-pin.pinned:hover {
+    background-color: var(--accent-soft);
+}
+
+/* 删除按钮 */
+.session-delete {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-faint-color);
+
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+
+    opacity: 0;
+    transition: opacity 0.15s, background-color 0.15s, color 0.15s;
+}
+
+.session-item:hover .session-delete {
+    opacity: 1;
+}
+
+.session-delete:hover {
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+
+/* ============================================================
+   6. 右侧聊天区外壳
+   ============================================================ */
+.chat-area {
+    flex: 1;                          /* 吃掉侧边栏之外的所有宽度 */
+    min-width: 0;                     /* ★★ 关键：不加会横向溢出 */
+    min-height: 0;
+
+    display: flex;
+    flex-direction: column;
+
+    /* ★ 和侧边栏一样的毛玻璃处理 */
+    background-color: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    border: 1px solid var(--glass-brd);
+    border-radius: var(--r-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    will-change: backdrop-filter;
+
+    transition: background-color 0.25s ease, border-color 0.25s ease;
+}
+
+/* ---------- ① 聊天标题栏 ---------- */
+.chat-header {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--border-soft-color);
+}
+
+.chat-header-text {
+    flex: 1;
+    min-width: 0;                     /* ★ 让标题的省略号生效 */
+    overflow: hidden;
+}
+
+.chat-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-color);
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.chat-meta {
+    margin-top: 1px;
+    font-size: 12px;
+    color: var(--text-faint-color);
+}
+
+/* 幽灵按钮（日志 / 清空） */
+.btn-ghost {
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    padding: 6px 11px;
+    border: 1px solid var(--border-color);
+    border-radius: 9px;
+    background-color: var(--surface-color);
+    color: var(--text-muted-color);
+
+    font-size: 12.5px;
+    font-weight: 500;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-ghost svg {
+    width: 13px;
+    height: 13px;
+}
+
+.btn-ghost:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+.btn-ghost-sm {
+    padding: 3px 9px;
+    font-size: 11.5px;
+    border-radius: 7px;
+}
+
+
+/* ============================================================
+   7. 消息气泡
+   ============================================================ */
+.msg-row {
+    flex-shrink: 0;                   /* ★ 不要被压缩，否则气泡会被压扁 */
+    display: flex;
+    align-items: flex-start;
+    margin-bottom: 18px;
+}
+
+.msg-row.user {
+    justify-content: flex-end;        /* 学生靠右 */
+}
+
+.msg-row.assistant {
+    justify-content: flex-start;      /* AI 靠左 */
+}
+
+/* AI 头像 */
+.avatar {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+    margin-right: 10px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 11px;
+    background: var(--gradient-accent);
+    color: #fff;
+
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.25);
+}
+
+.avatar svg {
+    width: 18px;
+    height: 18px;
+}
+
+.bubble-wrap {
+    max-width: 76%;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.msg-row.user .bubble-wrap {
+    align-items: flex-end;
+}
+
+.bubble {
+    padding: 11px 15px;
+    border-radius: var(--r-lg);
+
+    font-size: 14.5px;
+    line-height: 1.7;
+
+    /* 保留 AI 回复里的换行 */
+    white-space: pre-wrap;
+    /* 长单词 / 网址强制换行，防止撑破气泡 */
+    word-break: break-word;
+    overflow-wrap: anywhere;
+}
+
+/* 学生气泡 */
+.msg-row.user .bubble {
+    background: var(--bubble-user-bg);
+    color: var(--bubble-user-text);
+    border-bottom-right-radius: 5px;
+    box-shadow: var(--bubble-user-shadow);
+}
+
+/* AI 气泡 */
+.msg-row.assistant .bubble {
+    background-color: var(--bubble-ai-bg);
+    color: var(--bubble-ai-text);
+    border-bottom-left-radius: 5px;
+    box-shadow: var(--bubble-ai-shadow);
+}
+
+/* 知识点 / 错因 标签（胶囊形状）*/
+.msg-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: 7px;
+}
+
+.tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+
+    /* ★ 不能超出气泡宽度，否则会被裁掉 */
+    max-width: 100%;
+
+    padding: 3px 11px;
+    border-radius: var(--r-pill);
+
+    font-size: 11.5px;
+    font-weight: 600;
+    line-height: 1.7;
+
+    /* ==========================================================
+       ★ 修复"长错因被截断"
+       ----------------------------------------------------------
+       原来这里写的是 white-space: nowrap，
+       意思是"不管多长都不换行"。结果错因一长（比如 50 个字），
+       标签就会横向撑出气泡，被 .chat-messages 的
+       overflow-x: hidden 直接裁掉 —— 这就是被截断的原因。
+
+       改成允许换行 + 强制断开长词，内容多长都能完整显示。
+       ========================================================== */
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    height: auto;
+    overflow: visible;
+}
+
+.tag-knowledge {
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
+}
+
+
+/* ---------- 详细错因分析（长句子，自动换行）---------- */
+.error-detail {
+    margin-top: 6px;
+    padding: 7px 12px;
+    border-radius: 10px;
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+    font-size: 12.5px;
+    line-height: 1.65;
+    /* 允许换行，保证 50 字以上也完整显示 */
+    white-space: normal;
+    word-break: break-word;
+    overflow-wrap: anywhere;
+    height: auto;
+    overflow: visible;
+    max-width: 100%;
+}
+.tag-error {
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+/* 时间戳 */
+.msg-meta {
+    margin-top: 5px;
+    font-size: 11px;
+    color: var(--text-faint-color);
+}
+
+/* "AI 正在思考"的三个跳动小点 */
+.typing-bubble {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 15px 17px;
+}
+
+.dot {
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background-color: var(--accent-color);
+    animation: dotBounce 1.3s infinite ease-in-out;
+}
+
+.dot:nth-child(2) {
+    animation-delay: 0.18s;
+}
+
+.dot:nth-child(3) {
+    animation-delay: 0.36s;
+}
+
+@keyframes dotBounce {
+    0%, 60%, 100% {
+        transform: translateY(0);
+        opacity: 0.4;
+    }
+    30% {
+        transform: translateY(-5px);
+        opacity: 1;
+    }
+}
+
+/* 系统提示 */
+.system-note {
+    flex-shrink: 0;
+    align-self: center;
+    max-width: 80%;
+
+    margin: 12px 0;
+    padding: 6px 14px;
+    border-radius: var(--r-pill);
+
+    font-size: 12px;
+    color: var(--text-muted-color);
+    text-align: center;
+    background-color: var(--surface-color);
+    box-shadow: var(--shadow-xs);
+}
+
+.system-note-error {
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+.system-note-warn {
+    background-color: var(--warning-soft);
+    color: var(--warning-color);
+}
+
+
+/* ============================================================
+   8. 底部输入区
+   ============================================================ */
+.chat-input {
+    flex-shrink: 0;
+    padding: 14px 20px 12px;
+    border-top: 1px solid var(--border-soft-color);
+    /* 透明：让外面 .chat-area 的毛玻璃透上来 */
+    background-color: transparent;
+    transition: border-color 0.25s ease;
+}
+
+.composer {
+    display: flex;
+    align-items: flex-end;
+    gap: 8px;
+
+    padding: 6px 6px 6px 14px;
+
+    background-color: var(--input-bg-color);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: var(--shadow-sm);
+
+    transition: border-color 0.18s, box-shadow 0.18s, background-color 0.25s;
+}
+
+/* ★ 焦点在容器里任何元素上，整个容器就变蓝 */
+.composer:focus-within {
+    border-color: var(--accent-color);
+    box-shadow: var(--shadow-blue), var(--shadow-sm);
+}
+
+/* 输入框本体：去掉所有默认边框和聚焦光圈 */
+.composer textarea {
+    flex: 1;
+    min-width: 0;
+
+    padding: 8px 0;
+    border: none;
+    outline: none;
+    background: transparent;
+
+    font-family: inherit;
+    font-size: 14.5px;
+    line-height: 1.6;
+    color: var(--text-color);
+
+    resize: none;
+    max-height: 140px;
+    overflow-y: auto;
+}
+
+.composer textarea::placeholder {
+    color: var(--text-faint-color);
+}
+
+.composer textarea:disabled {
+    cursor: not-allowed;
+}
+
+/* 发送按钮 */
+.send-btn {
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+
+    height: 38px;
+    padding: 0 16px;
+
+    border: none;
+    border-radius: 13px;
+    background: var(--gradient-accent);
+    color: #fff;
+
+    font-size: 13.5px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    box-shadow: 0 2px 6px rgba(37, 99, 235, 0.28);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.1s, background 0.15s;
+}
+
+.send-btn:hover:not(:disabled) {
+    filter: brightness(1.08);
+    box-shadow: 0 3px 10px rgba(37, 99, 235, 0.35);
+}
+
+.send-btn:active:not(:disabled) {
+    transform: translateY(1px);
+}
+
+.send-btn:disabled {
+    background: var(--surface-2-color);
+    color: var(--text-faint-color);
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.send-icon {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+/* 等待 AI 时把纸飞机藏起来，避免和 spinner 挤在一起 */
+.send-btn:has(#send-spinner:not(.d-none)) .send-icon {
+    display: none;
+}
+
+/* 底部提示语：小、淡 */
+.chat-hint {
+    margin-top: 8px;
+    font-size: 11.5px;
+    color: var(--text-faint-color);
+    text-align: center;
+    opacity: 0.85;
+}
+
+.chat-hint kbd {
+    padding: 1px 5px;
+    border-radius: 5px;
+    background-color: var(--surface-2-color);
+    border: 1px solid var(--border-color);
+    box-shadow: none;
+    color: var(--text-muted-color);
+    font-size: 10.5px;
+    font-family: inherit;
+}
+
+
+/* ============================================================
+   9. 日志面板
+   ============================================================ */
+.log-panel {
+    flex-shrink: 0;
+    max-height: 34vh;
+    overflow-y: auto;
+    border-top: 1px solid var(--border-soft-color);
+    /* 透明：同样是让毛玻璃透上来 */
+    background-color: transparent;
+}
+
+.log-inner {
+    padding: 14px 20px;
+}
+
+.log-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 9px;
+}
+
+.log-title {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-muted-color);
+    letter-spacing: 0.4px;
+}
+
+/* 终端风格的日志框（本身是深色，两种主题下都好看）*/
+.ai-log {
+    padding: 12px 14px;
+    border-radius: var(--r-md);
+    background-color: #0B1220;
+    color: #CBD5E1;
+
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 12.5px;
+    line-height: 1.75;
+
+    height: 158px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+[data-theme="dark"] .ai-log {
+    background-color: #060B14;
+    border: 1px solid var(--border-color);
+}
+
+.ai-log-line {
+    margin-bottom: 1px;
+}
+
+.ai-log-ok {
+    color: #34D399;
+}
+
+.ai-log-error {
+    color: #F87171;
+}
+
+.ai-log-info {
+    color: #7DD3FC;
+}
+
+
+/* ============================================================
+   10. ★ 消息区上下毛玻璃渐变遮罩
+   ------------------------------------------------------------
+   结构：
+        .chat-scroll            取景框（position: relative）
+          ├── ::before          顶部 32px 遮罩
+          ├── ::after           底部 32px 遮罩
+          └── #chat-messages    真正滚动的元素
+
+   原理：
+     · backdrop-filter: blur(var(--glass-blur)) 把"遮罩后面的内容"
+       （也就是滚动的消息）做高斯模糊，形成毛玻璃效果
+     · background 用 linear-gradient 从【聊天区底色】渐变到透明，
+       让模糊区自然地融进背景
+     · mask-image 也用渐变，作用是把"模糊本身"也淡出 ——
+       否则遮罩的下边缘会有一条生硬的分界线
+
+   ⚠️⚠️ pointer-events: none 绝对不能删！
+        遮罩虽然看起来是"覆盖"在消息上的，但它必须对鼠标完全透明，
+        否则鼠标滚轮滚不动、消息里的文字也选不中、点不了。
+   ============================================================ */
+.chat-scroll {
+    position: relative;               /* 给两个遮罩当定位参照 */
+    flex: 1;
+    min-height: 0;                    /* ★ 让内部的消息区能正常滚动 */
+
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+/* 两个遮罩共用的样式 */
+.chat-scroll::before,
+.chat-scroll::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 32px;
+
+    z-index: 3;                       /* 浮在消息上面 */
+    pointer-events: none;             /* ★★★ 让鼠标"穿透"过去 */
+
+    /* 毛玻璃：模糊身后的滚动内容（和侧边栏用同一个变量，一起调大）*/
+    backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+    -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(150%);
+
+    /* 颜色用变量，深浅主题自动适配 */
+    transition: background 0.25s ease;
+}
+
+/* ---------- 顶部遮罩 ---------- */
+.chat-scroll::before {
+    top: 0;
+
+    /* 从上往下：遮罩底色 → 透明 */
+    background: linear-gradient(
+        to bottom,
+        var(--mask-tint) 0%,
+        var(--mask-tint) 45%,
+        transparent 100%
+    );
+
+    /* 让"模糊"本身也向下淡出，避免一条硬边 */
+    -webkit-mask-image: linear-gradient(
+        to bottom, #000 0%, #000 45%, transparent 100%
+    );
+    mask-image: linear-gradient(
+        to bottom, #000 0%, #000 45%, transparent 100%
+    );
+}
+
+/* ---------- 底部遮罩 ---------- */
+.chat-scroll::after {
+    bottom: 0;
+
+    /* 从下往上：遮罩底色 → 透明 */
+    background: linear-gradient(
+        to top,
+        var(--mask-tint) 0%,
+        var(--mask-tint) 45%,
+        transparent 100%
+    );
+
+    -webkit-mask-image: linear-gradient(
+        to top, #000 0%, #000 45%, transparent 100%
+    );
+    mask-image: linear-gradient(
+        to top, #000 0%, #000 45%, transparent 100%
+    );
+}
+
+/* 消息展示区：真正滚动的元素（app.js 里的 chat-messages） */
+.chat-messages {
+    flex: 1;
+    min-height: 0;                    /* ★ 关键：不加会顶破容器 */
+
+    overflow-y: auto;
+    overflow-x: hidden;
+
+    padding: 22px 24px;
+    /* 半透明：让下层的玻璃和背景柔光透上来（原来是实心色，会把玻璃挡住）*/
+    background-color: var(--chat-surface);
+
+    /* 用 flex 竖向排列消息，方便让占位提示垂直居中 */
+    display: flex;
+    flex-direction: column;
+
+    transition: background-color 0.25s ease;
+}
+
+/* 居中提示 */
+.chat-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    padding: 20px;
+    color: var(--text-faint-color);
+    font-size: 14px;
+    text-align: center;
+}
+
+
+/* ============================================================
+   11. 滚动条美化
+   ============================================================ */
+.chat-messages::-webkit-scrollbar,
+.session-list::-webkit-scrollbar,
+.ai-log::-webkit-scrollbar,
+.composer textarea::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb,
+.session-list::-webkit-scrollbar-thumb,
+.composer textarea::-webkit-scrollbar-thumb {
+    background-color: rgba(100, 116, 139, 0.25);
+    border-radius: var(--r-pill);
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover,
+.session-list::-webkit-scrollbar-thumb:hover {
+    background-color: rgba(100, 116, 139, 0.4);
+}
+
+.ai-log::-webkit-scrollbar-thumb {
+    background-color: rgba(148, 163, 184, 0.3);
+    border-radius: var(--r-pill);
+}
+
+.chat-messages::-webkit-scrollbar-track,
+.session-list::-webkit-scrollbar-track,
+.ai-log::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+
+/* ============================================================
+   11.5 性能兜底：浏览器不支持毛玻璃时
+   ------------------------------------------------------------
+   backdrop-filter 在很老的浏览器里没有。
+   那种情况下半透明背景会让文字糊在彩色背景上，很难看。
+   这里检测到不支持就退回【不透明的实心背景】，保证能看清。
+   ============================================================ */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+    .sidebar,
+    .chat-area {
+        background-color: var(--surface-color);
+    }
+
+    .chat-messages {
+        background-color: var(--bg-color);
+    }
+
+    .chat-scroll::before {
+        background: linear-gradient(to bottom, var(--bg-color) 0%, transparent 100%);
+    }
+
+    .chat-scroll::after {
+        background: linear-gradient(to top, var(--bg-color) 0%, transparent 100%);
+    }
+}
+
+
+/* ============================================================
+   11.6 导航栏上的图标按钮（侧边栏折叠 / 深色模式共用外观）
+   ============================================================ */
+.nav-icon-btn {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--surface-color);
+    color: var(--text-muted-color);
+
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s,
+                border-color 0.15s, transform 0.15s;
+}
+
+.nav-icon-btn:hover {
+    background-color: var(--hover-color);
+    color: var(--accent-color);
+    border-color: var(--accent-border);
+}
+
+.nav-icon-btn:active {
+    transform: scale(0.94);
+}
+
+.nav-icon-btn svg {
+    width: 17px;
+    height: 17px;
+}
+
+/* 侧边栏收起时，折叠按钮高亮，提示"点这里能展开" */
+body.sidebar-collapsed .nav-icon-btn {
+    color: var(--accent-color);
+    background-color: var(--accent-soft);
+    border-color: var(--accent-border);
+}
+
+
+/* ============================================================
+   11.7 侧边栏收起 / 展开
+   ------------------------------------------------------------
+   思路：
+     · 展开时  flex-basis: 250px
+     · 收起时  flex-basis: 0，宽度、透明度一起过渡到 0
+     · 因为右侧 .chat-area 是 flex: 1，侧边栏让出的空间
+       会被它自动吃掉 —— 不需要写任何 JS 去调整宽度
+     · margin-right: -14px 是为了抵消 .app-body 的 gap，
+       否则收起后会剩一条 14px 的空隙，看起来像留白
+   ============================================================ */
+.sidebar {
+    transition: flex-basis 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                margin-right 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+                opacity 0.2s ease,
+                background-color 0.25s ease,
+                border-color 0.25s ease;
+}
+
+.sidebar.collapsed {
+    flex-basis: 0;
+    width: 0;
+    min-width: 0;
+    opacity: 0;
+    margin-right: -14px;          /* 抵消 flex gap */
+    border-width: 0;              /* 不然会留一条 1px 的竖线 */
+    pointer-events: none;         /* 收起了就别再接收点击 */
+}
+
+/* 侧边栏正在滑动时，临时关掉它自己的毛玻璃。
+   因为"改变宽度"会让 blur 每一帧都重算，容易掉帧；
+   而这时它已经接近透明了，关掉看不出区别。 */
+.sidebar.is-animating {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+}
+
+
+/* ============================================================
+   11.8 删除确认弹窗
+   ============================================================ */
+.modal-mask {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 100;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+
+    /* 半透明黑色蒙层 + 一点点模糊，把注意力集中到弹窗上 */
+    background-color: rgba(15, 23, 42, 0.45);
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+
+    animation: modalFadeIn 0.16s ease;
+}
+
+.modal-box {
+    width: 100%;
+    max-width: 350px;
+    padding: 24px 22px 18px;
+
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 18px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.28);
+    text-align: center;
+
+    animation: modalPopIn 0.2s cubic-bezier(0.34, 1.4, 0.64, 1);
+}
+
+.modal-icon {
+    width: 48px;
+    height: 48px;
+    margin: 0 auto 14px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border-radius: 50%;
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+.modal-icon svg {
+    width: 24px;
+    height: 24px;
+}
+
+.modal-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--text-color);
+    margin-bottom: 6px;
+}
+
+.modal-text {
+    font-size: 13px;
+    color: var(--text-muted-color);
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-modal {
+    flex: 1;
+    height: 40px;
+
+    border: none;
+    border-radius: 11px;
+
+    font-size: 14px;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+
+    transition: filter 0.15s, background-color 0.15s, transform 0.1s;
+}
+
+.btn-modal:active {
+    transform: translateY(1px);
+}
+
+/* 取消：低调的灰底 */
+.btn-modal-ghost {
+    background-color: var(--surface-2-color);
+    color: var(--text-body-color);
+    border: 1px solid var(--border-color);
+}
+
+.btn-modal-ghost:hover {
+    background-color: var(--hover-color);
+}
+
+/* 确认删除：醒目的红 */
+.btn-modal-danger {
+    background-color: #DC2626;
+    color: #fff;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+}
+
+.btn-modal-danger:hover {
+    filter: brightness(1.08);
+}
+
+@keyframes modalFadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+}
+
+@keyframes modalPopIn {
+    from { opacity: 0; transform: scale(0.94) translateY(6px); }
+    to   { opacity: 1; transform: none; }
+}
+
+
+/* ============================================================
+   11.9 批量管理会话
+   ============================================================ */
+
+/* ---------- "批量管理"图标按钮（在"新建会话"旁边）---------- */
+.btn-icon-batch {
+    flex-shrink: 0;
+
+    width: 34px;
+    height: 34px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    background-color: var(--surface-2-color);
+    color: var(--text-muted-color);
+
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s,
+                border-color 0.15s, transform 0.15s;
+}
+
+.btn-icon-batch svg {
+    width: 16px;
+    height: 16px;
+}
+
+.btn-icon-batch:hover {
+    background-color: var(--hover-color);
+    color: var(--accent-color);
+    border-color: var(--accent-border);
+}
+
+.btn-icon-batch:active {
+    transform: scale(0.94);
+}
+
+/* 进入批量模式后，这个按钮保持高亮，提示"再点一下能退出" */
+body.batch-mode .btn-icon-batch {
+    color: var(--accent-color);
+    background-color: var(--accent-soft);
+    border-color: var(--accent-border);
+}
+
+/* ---------- 批量操作栏 ---------- */
+.batch-bar {
+    margin-top: 10px;
+    padding: 9px 10px;
+
+    background-color: var(--accent-soft);
+    border: 1px solid var(--accent-border);
+    border-radius: 10px;
+
+    animation: batchBarIn 0.18s ease;
+}
+
+@keyframes batchBarIn {
+    from { opacity: 0; transform: translateY(-4px); }
+    to   { opacity: 1; transform: none; }
+}
+
+.batch-count {
+    font-size: 11.5px;
+    font-weight: 700;
+    color: var(--accent-color);
+    margin-bottom: 7px;
+}
+
+.batch-actions {
+    display: flex;
+    gap: 5px;
+}
+
+/* 小号操作按钮 */
+.btn-mini {
+    flex: 1;
+    min-width: 0;
+
+    height: 26px;
+    padding: 0 6px;
+
+    border: 1px solid var(--border-color);
+    border-radius: 7px;
+    background-color: var(--surface-color);
+    color: var(--text-body-color);
+
+    font-size: 11px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition: background-color 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.btn-mini:hover {
+    background-color: var(--hover-color);
+    color: var(--text-color);
+}
+
+/* "删除选中"用红色，和另外两个区分开 */
+.btn-mini-danger {
+    border-color: var(--danger-color);
+    color: var(--danger-color);
+    background-color: var(--danger-soft);
+}
+
+.btn-mini-danger:hover {
+    background-color: var(--danger-color);
+    color: #fff;
+}
+
+.btn-mini:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* ---------- 会话条目上的复选框 ---------- */
+.session-checkbox {
+    flex-shrink: 0;
+
+    width: 18px;
+    height: 18px;
+    margin-right: 2px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1.5px solid var(--gray-300);
+    border-radius: 5px;
+    background-color: var(--surface-color);
+    color: transparent;              /* 勾号平时是透明的（看不见）*/
+
+    transition: background-color 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.session-checkbox svg {
+    width: 12px;
+    height: 12px;
+}
+
+/* 勾选后：蓝底 + 白色勾 */
+.session-checkbox.checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #fff;
+}
+
+/* 深色模式下未勾选的框要亮一点，否则在深底上看不见 */
+[data-theme="dark"] .session-checkbox {
+    border-color: var(--gray-500);
+    background-color: var(--surface-2-color);
+}
+
+[data-theme="dark"] .session-checkbox.checked {
+    background-color: var(--accent-color);
+    border-color: var(--accent-color);
+    color: #0B1220;                  /* 深色下用深色勾，和亮蓝底对比更强 */
+}
+
+/* 批量模式下被选中的条目：淡蓝底 + 蓝色描边 */
+.session-item.selected {
+    background-color: var(--accent-soft);
+    box-shadow: inset 0 0 0 1px var(--accent-border);
+}
+
+.session-item.selected .session-title {
+    color: var(--accent-color);
+    font-weight: 600;
+}
+
+/* 批量模式下不显示左侧的蓝色竖条（那是"当前正在查看"的标记，容易混淆）*/
+body.batch-mode .session-item::before {
+    display: none;
+}
+
+
+/* ============================================================
+   11.10 学习报告 + 举一反三
+   ============================================================ */
+
+/* ---------- 导航栏上的"学习报告"按钮 ---------- */
+.btn-nav-primary {
+    flex-shrink: 0;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+
+    height: 34px;
+    padding: 0 13px;
+
+    border: none;
+    border-radius: 10px;
+    background: var(--gradient-accent);
+    color: #fff;
+
+    font-size: 12.5px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.28);
+    transition: filter 0.15s, box-shadow 0.15s, transform 0.1s;
+}
+
+.btn-nav-primary svg {
+    width: 15px;
+    height: 15px;
+    flex-shrink: 0;
+}
+
+.btn-nav-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 3px 12px rgba(37, 99, 235, 0.35);
+}
+
+.btn-nav-primary:active {
+    transform: translateY(1px);
+}
+
+/* ---------- 报告弹窗（比确认弹窗宽）---------- */
+.report-box {
+    max-width: 760px;
+    max-height: 88vh;
+    overflow-y: auto;
+    padding: 20px 22px 22px;
+    text-align: left;              /* 覆盖 .modal-box 的居中 */
+}
+
+.report-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.report-title {
+    margin-bottom: 2px;
+}
+
+.report-subtitle {
+    font-size: 12px;
+    color: var(--text-muted-color);
+}
+
+/* 顶部三个数字 */
+.report-stats {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 16px;
+}
+
+.report-stat {
+    flex: 1;
+    padding: 10px 12px;
+
+    background-color: var(--surface-2-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    text-align: center;
+}
+
+.report-stat-num {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--accent-color);
+    line-height: 1.3;
+}
+
+.report-stat-label {
+    font-size: 11.5px;
+    color: var(--text-muted-color);
+}
+
+/* 两个图表卡片 */
+.report-body {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+}
+
+.report-chart-card {
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 12px;
+}
+
+.report-chart-title {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--text-body-color);
+    margin-bottom: 6px;
+}
+
+.report-chart {
+    width: 100%;
+    height: 260px;
+}
+
+.report-empty {
+    padding: 40px 20px;
+    text-align: center;
+    font-size: 13.5px;
+    color: var(--text-faint-color);
+}
+
+/* 窄屏时图表改成上下排列 */
+@media (max-width: 640px) {
+    .report-body {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ---------- 举一反三：AI 气泡下面的"生成同类练习题"按钮 ---------- */
+.variant-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+
+    /* 在竖向 flex 的气泡容器里，别被拉满整行宽度 */
+    align-self: flex-start;
+
+    margin-top: 7px;
+    padding: 5px 12px;
+
+    border: 1px solid var(--accent-border);
+    border-radius: var(--r-pill);
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
+
+    font-size: 12px;
+    font-weight: 600;
+    font-family: inherit;
+    white-space: nowrap;
+    cursor: pointer;
+
+    transition: background-color 0.15s, color 0.15s, transform 0.1s;
+}
+
+.variant-btn svg {
+    width: 13px;
+    height: 13px;
+    flex-shrink: 0;
+}
+
+.variant-btn:hover {
+    background-color: var(--accent-color);
+    color: #fff;
+    border-color: var(--accent-color);
+}
+
+.variant-btn:active {
+    transform: translateY(1px);
+}
+
+.variant-btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+    transform: none;
+}
+
+
+/* ---------- 📷 上传图片按钮 ---------- */
+.btn-image {
+    flex-shrink: 0;
+
+    width: 38px;
+    height: 38px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--border-color);
+    border-radius: 13px;
+    background-color: var(--surface-2-color);
+    color: var(--text-muted-color);
+
+    cursor: pointer;
+    transition: background-color 0.15s, color 0.15s,
+                border-color 0.15s, transform 0.1s;
+}
+
+.btn-image svg {
+    width: 18px;
+    height: 18px;
+}
+
+.btn-image:hover:not(:disabled) {
+    background-color: var(--accent-soft);
+    color: var(--accent-color);
+    border-color: var(--accent-border);
+}
+
+.btn-image:active:not(:disabled) {
+    transform: scale(0.94);
+}
+
+.btn-image:disabled {
+    opacity: 0.45;
+    cursor: not-allowed;
+}
+
+/* 正在识别时，按钮轻微呼吸，提示"在忙" */
+.btn-image.busy {
+    animation: imageBusy 1.1s ease-in-out infinite;
+}
+
+@keyframes imageBusy {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.45; }
+}
+
+/* ---------- 图片预览条 ---------- */
+.image-preview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+
+    margin-bottom: 10px;
+    padding: 8px 10px;
+
+    background-color: var(--surface-2-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+
+    animation: batchBarIn 0.18s ease;
+}
+
+.image-preview-img {
+    width: 46px;
+    height: 46px;
+    object-fit: cover;              /* 缩略图裁切，不变形 */
+    border-radius: 9px;
+    border: 1px solid var(--border-color);
+    background-color: var(--surface-color);
+    flex-shrink: 0;
+}
+
+.image-preview-text {
+    flex: 1;
+    min-width: 0;
+}
+
+.image-preview-name {
+    font-size: 12.5px;
+    font-weight: 600;
+    color: var(--text-body-color);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.image-preview-status {
+    margin-top: 2px;
+    font-size: 11.5px;
+    color: var(--text-muted-color);
+}
+
+/* 识别成功 / 失败时变色，一眼能看出来 */
+.image-preview-status.ok {
+    color: var(--success-color);
+}
+
+.image-preview-status.error {
+    color: var(--danger-color);
+}
+
+.image-remove {
+    flex-shrink: 0;
+
+    width: 24px;
+    height: 24px;
+    padding: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: none;
+    border-radius: 7px;
+    background: transparent;
+    color: var(--text-faint-color);
+
+    font-size: 18px;
+    line-height: 1;
+    cursor: pointer;
+
+    transition: background-color 0.15s, color 0.15s;
+}
+
+.image-remove:hover {
+    background-color: var(--danger-soft);
+    color: var(--danger-color);
+}
+
+
+/* ============================================================
+   12. 响应式：窄屏改成上下排列
+   ============================================================ */
+@media (max-width: 768px) {
+    .navbar-inner {
+        padding: 0 14px;
+        gap: 8px;
+    }
+
+    .app-body {
+        flex-direction: column;
+        padding: 12px 14px 14px;
+        gap: 12px;
+    }
+
+    /* 手机上侧边栏是上下排列的，收起功能没意义：
+       这里强制还原成展开状态，并藏掉折叠按钮 */
+    .sidebar,
+    .sidebar.collapsed {
+        flex: 0 0 auto;
+        width: 100%;
+        max-height: 38vh;
+        opacity: 1;
+        margin-right: 0;
+        border-width: 1px;
+        pointer-events: auto;
+    }
+
+    #sidebar-toggle-btn {
+        display: none;
+    }
+
+    .chat-area {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .chat-messages {
+        padding: 16px 14px;
+    }
+
+    .bubble-wrap {
+        max-width: 86%;
+    }
+
+    .chat-input {
+        padding: 12px 14px 10px;
+    }
+}

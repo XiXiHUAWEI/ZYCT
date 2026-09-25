@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# SQLite 数据库（本地生成，不要提交）
+*.db
+*.sqlite3
+
+# 迁移时的自动备份（也是 .db 文件，但位置固定，双保险）
+database/backup/
+
+# ★ 环境变量文件：里面有 API Key，绝对不能提交到 GitHub！
+.env
+.env.local
+.env.*.local
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

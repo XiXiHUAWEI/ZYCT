@@ -1,0 +1,13 @@
+# 智愈错题 —— 后端依赖清单
+# 安装命令（在 backend 目录下）：
+#     pip install -r requirements.txt
+
+# Web 框架
+fastapi>=0.115
+uvicorn[standard]>=0.30
+
+# 用来调用 DeepSeek API（异步 HTTP 客户端，不会卡住其他请求）
+httpx>=0.27
+
+# ★ 用来读取 .env 文件里的 API Key，避免把密钥写死在代码里
+python-dotenv>=1.0

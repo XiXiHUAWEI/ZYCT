@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  智愈错题 —— 网站图标（favicon）
+
+  这就是浏览器标签页上那个小图标。
+  图案和导航栏左上角的 Logo 是同一个：蓝色渐变圆角方块 + 白色学士帽。
+
+  想改颜色？把下面两个 stop-color 的值换掉就行：
+      #3B82F6  浅一点的蓝（渐变起点）
+      #2563EB  深一点的蓝（渐变终点）
+  这两个值和 style.css 里主色变量 gradient accent 用的是同一套配色，
+  改的时候记得两处一起改，保持统一。
+
+  为什么用 SVG 而不是 .ico？
+      SVG 是矢量图，放大缩小都不会糊，而且文件极小（不到 2 KB）。
+      现代浏览器（Chrome / Edge / Firefox / Safari）都支持。
+
+  注意：XML 注释里不能出现连续两个减号，所以上面没有写那个变量名。
+-->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+
+    <!-- 蓝色渐变（和网站主色一致） -->
+    <defs>
+        <linearGradient id="brandBlue" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#3B82F6"/>
+            <stop offset="1" stop-color="#2563EB"/>
+        </linearGradient>
+    </defs>
+
+    <!-- 圆角方块底 -->
+    <rect width="64" height="64" rx="15" fill="url(#brandBlue)"/>
+
+    <!-- 白色学士帽（和导航栏 Logo 同一个形状） -->
+    <g fill="none" stroke="#FFFFFF" stroke-width="4.5"
+       stroke-linecap="round" stroke-linejoin="round">
+        <path d="M52 26 32 15 12 26l20 11 20-11Z"/>
+        <path d="M20 31.5V43c0 4 5.4 7.2 12 7.2S44 47 44 43V31.5"/>
+    </g>
+
+</svg>
