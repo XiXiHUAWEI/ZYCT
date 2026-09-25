@@ -25,7 +25,7 @@
 ## init_db.py —— 建表
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python database\init_db.py
 ```
 
@@ -34,7 +34,7 @@ python database\init_db.py
 ```
 数据库初始化完成！
 
-数据库文件：D:\0\1\database\zhixue.db
+数据库文件：你的目录\database\zhixue.db
 已有的表（共 4 张）：
   - messages
   - reports
@@ -47,7 +47,7 @@ python database\init_db.py
 ## migrate.py —— 升级
 
 ```powershell
-cd D:\0\1
+cd 你的目录
 python database\migrate.py
 ```
 
